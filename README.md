@@ -19,12 +19,6 @@ python -m venv venv  # Windows
 venv\Scripts\activate
 ```
 
-### Executar análises exploratórias no terminal
-
-```
-python src/eda.py
-```
-
 ### Treinar o modelo
 
 ```
