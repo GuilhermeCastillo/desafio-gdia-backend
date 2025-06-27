@@ -4,23 +4,18 @@ import pandas as pd
 import numpy as np
 import joblib
 
-# Caminho base do projeto
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
-# Caminhos dos arquivos salvos
 MODEL_PATH = os.path.join(BASE_DIR, "models", "model_bank.pkl")
 SCALER_PATH = os.path.join(BASE_DIR, "models", "scaler_bank.pkl")
-COLS_PATH = os.path.join(BASE_DIR, "models", "num_cols.pkl")
+COLS_PATH = os.path.join(BASE_DIR, "models", "cols_model.pkl")
 
-# Carrega modelo, scaler e colunas esperadas
 model = joblib.load(MODEL_PATH)
 scaler = joblib.load(SCALER_PATH)
 cols_model = joblib.load(COLS_PATH)
 
-# Variáveis numéricas (para normalização)
 num_cols = ["age", "balance", "day", "duration", "campaign", "pdays", "previous"]
 
-# Categorias "base" que foram excluídas no drop_first=True
 base_categories = {
     "job": "admin.",
     "marital": "divorced",
@@ -30,7 +25,6 @@ base_categories = {
     "poutcome": "sem_contato_anterior",
 }
 
-# Interface do Streamlit
 st.set_page_config(page_title="Preditor de Campanha Bancária", layout="centered")
 st.title("Predição de Resposta a Campanha de Marketing")
 
@@ -38,7 +32,6 @@ st.markdown(
     "Preencha os dados do cliente abaixo para prever se ele aceitaria a oferta da campanha."
 )
 
-# Coleta de dados do usuário
 age = st.number_input("Idade", min_value=18, max_value=100, value=30)
 balance = st.number_input("Saldo bancário", value=0.0, step=0.01, format="%.2f")
 day = st.number_input("Dia do mês de contato", min_value=1, max_value=31, value=15)
@@ -113,7 +106,6 @@ if st.button("Prever resposta à campanha"):
         }
     )
 
-    # One-hot encoding manual (respeitando o drop_first)
     user_cats = {
         "job": job,
         "marital": marital,
@@ -124,19 +116,20 @@ if st.button("Prever resposta à campanha"):
     }
 
     for cat, val in user_cats.items():
-        if val != base_categories[cat]:  # ignora categoria dropada
+        if val != base_categories[cat]:
             col_name = f"{cat}_{val}"
             if col_name in input_dict:
                 input_dict[col_name] = 1
 
-    # Converte para DataFrame e ordena colunas
     input_data = pd.DataFrame([input_dict])
     input_data = input_data[cols_model]
 
-    # Aplica normalização nas variáveis numéricas
-    input_data[num_cols] = scaler.transform(input_data[num_cols])
+    try:
+        input_data[num_cols] = scaler.transform(input_data[num_cols])
+    except Exception as e:
+        st.error(f"Erro ao aplicar scaler: {e}")
+        st.stop()
 
-    # Faz a previsão
     prediction = model.predict(input_data)[0]
     resultado = (
         "**SIM** – O cliente aceitaria a campanha."
