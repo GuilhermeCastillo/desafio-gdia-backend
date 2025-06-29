@@ -14,6 +14,11 @@ from preprocess import (
 DATA_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "bank.xls")
 models_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "models")
 
+if not os.path.exists(models_dir):
+    os.makedirs(models_dir)
+    print(f"Diretório '{models_dir}' criado com sucesso.")
+
+
 df = carregar_dados(DATA_PATH)
 df = tratar_valores_nulos(df)
 df_encoded = encode_variaveis(df)
